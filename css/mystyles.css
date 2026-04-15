@@ -26,7 +26,7 @@ body.scratch-body {
 
 .hero-box {
     background: linear-gradient(rgba(11, 61, 92, 0.65), rgba(11, 61, 92, 0.65)),
-                url('../assets/img/boatwallpaper.jpg');
+                url('../boatwallpaper.jpg');
     background-size: cover;
     background-position: center bottom;
     color: white;
