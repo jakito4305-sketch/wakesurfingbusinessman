@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lake Wordle | Jack Turley</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+    min-height: 100vh;
+    background:
+        linear-gradient(rgba(11, 63, 138, 0.75), rgba(14, 110, 184, 0.75)),
+        url('assets/img/lakepowell.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+        
+
+        .top-bar {
+            background-color: rgba(0, 20, 50, 0.55);
+            padding: 14px 24px;
+            font-size: 16px;
+        }
+
+        .top-bar a {
+            color: #d9ecff;
+            text-decoration: none;
+            margin-right: 28px;
+            font-weight: 500;
+        }
+
+        .top-bar a:hover {
+            text-decoration: underline;
+        }
+
+        .game-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 35px 20px 40px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 64px;
+            letter-spacing: 4px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            margin-top: 12px;
+            font-size: 22px;
+            color: #d7eaff;
+        }
+
+        .hint {
+            margin-top: 30px;
+            font-size: 18px;
+            font-style: italic;
+            color: #e8f4ff;
+        }
+
+        #board {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 10px;
+            width: fit-content;
+            margin: 55px auto 30px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 72px);
+            gap: 10px;
+        }
+
+        .tile {
+            width: 72px;
+            height: 72px;
+            border: 3px solid rgba(255, 255, 255, 0.35);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            font-weight: bold;
+            text-transform: uppercase;
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .correct {
+            background-color: #3cb371;
+            border-color: #3cb371;
+            color: white;
+        }
+
+        .present {
+            background-color: #d4a72c;
+            border-color: #d4a72c;
+            color: white;
+        }
+
+        .absent {
+            background-color: #5c6b7a;
+            border-color: #5c6b7a;
+            color: white;
+        }
+
+        #keyboard {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .key {
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            margin: 4px;
+            min-width: 52px;
+            height: 58px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 12px;
+        }
+
+        .key:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        .wide-key {
+            min-width: 95px;
+            font-size: 16px;
+        }
+
+        #message {
+            margin-top: 26px;
+            min-height: 28px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .footer-note {
+            margin-top: 70px;
+            font-size: 18px;
+            color: #c9e5ff;
+        }
+
+        @media (max-width: 700px) {
+            h1 {
+                font-size: 42px;
+            }
+
+            .subtitle {
+                font-size: 18px;
+            }
+
+            .row {
+                grid-template-columns: repeat(5, 56px);
+            }
+
+            .tile {
+                width: 56px;
+                height: 56px;
+                font-size: 28px;
+            }
+
+            .key {
+                min-width: 42px;
+                height: 50px;
+                font-size: 16px;
+            }
+
+            .wide-key {
+                min-width: 78px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <a href="fromscratch.html">← Back to Wakesurf Page</a>
+        <a href="index.html">🏠 Main Site</a>
+    </div>
+
+    <div class="game-wrapper">
+        <h1>🌊 LAKE WORDLE</h1>
+        <p class="subtitle">Guess the 5-letter wake & water sports word in 6 tries!</p>
+        <p class="hint">💡 Hint: The person on the board</p>
+
+        <div id="board"></div>
+        <div id="keyboard"></div>
+        <div id="message"></div>
+
+        <div class="footer-note">
+            Jack Turley — BYU IS 201 — Main Site
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            { word: "RIDER", hint: "The person on the board" },
+            { word: "WAKES", hint: "What the boat creates" },
+            { word: "BOARD", hint: "You stand on this" },
+            { word: "ROPES", hint: "You start with one" },
+            { word: "SPRAY", hint: "Water flying off the wave" },
+            { word: "TRICK", hint: "Something advanced riders try" },
+            { word: "SHORE", hint: "The edge of the lake" }
+        ];
+
+        const chosen = words[Math.floor(Math.random() * words.length)];
+        const targetWord = chosen.word;
+        document.querySelector(".hint").textContent = "💡 Hint: " + chosen.hint;
+
+        const maxRows = 6;
+        const maxCols = 5;
+        let currentRow = 0;
+        let currentCol = 0;
+        let gameOver = false;
+        const guesses = Array.from({ length: maxRows }, () => Array(maxCols).fill(""));
+
+        const board = document.getElementById("board");
+        const keyboard = document.getElementById("keyboard");
+        const message = document.getElementById("message");
+
+        function createBoard() {
+            for (let r = 0; r < maxRows; r++) {
+                const row = document.createElement("div");
+                row.classList.add("row");
+                row.id = `row-${r}`;
+
+                for (let c = 0; c < maxCols; c++) {
+                    const tile = document.createElement("div");
+                    tile.classList.add("tile");
+                    tile.id = `tile-${r}-${c}`;
+                    row.appendChild(tile);
+                }
+
+                board.appendChild(row);
+            }
+        }
+
+        function makeKey(label, extraClass = "") {
+            const btn = document.createElement("button");
+            btn.textContent = label;
+            btn.className = `key ${extraClass}`;
+            btn.id = `key-${label}`;
+            btn.addEventListener("click", () => handleKey(label));
+            return btn;
+        }
+
+        function createKeyboard() {
+            const row1 = "QWERTYUIOP".split("");
+            const row2 = "ASDFGHJKL".split("");
+            const row3 = "ZXCVBNM".split("");
+
+            const keyboardRow1 = document.createElement("div");
+            keyboardRow1.classList.add("keyboard-row");
+            row1.forEach(letter => keyboardRow1.appendChild(makeKey(letter)));
+
+            const keyboardRow2 = document.createElement("div");
+            keyboardRow2.classList.add("keyboard-row");
+            row2.forEach(letter => keyboardRow2.appendChild(makeKey(letter)));
+
+            const keyboardRow3 = document.createElement("div");
+            keyboardRow3.classList.add("keyboard-row");
+            keyboardRow3.appendChild(makeKey("ENTER", "wide-key"));
+            row3.forEach(letter => keyboardRow3.appendChild(makeKey(letter)));
+            keyboardRow3.appendChild(makeKey("⌫", "wide-key"));
+
+            keyboard.appendChild(keyboardRow1);
+            keyboard.appendChild(keyboardRow2);
+            keyboard.appendChild(keyboardRow3);
+        }
+
+        function updateTile(row, col, letter) {
+            document.getElementById(`tile-${row}-${col}`).textContent = letter;
+        }
+
+        function handleKey(key) {
+            if (gameOver) return;
+
+            if (key === "⌫") {
+                if (currentCol > 0) {
+                    currentCol--;
+                    guesses[currentRow][currentCol] = "";
+                    updateTile(currentRow, currentCol, "");
+                }
+                return;
+            }
+
+            if (key === "ENTER") {
+                if (currentCol < maxCols) {
+                    message.textContent = "Enter a 5-letter word.";
+                    return;
+                }
+                submitGuess();
+                return;
+            }
+
+            if (/^[A-Z]$/.test(key) && currentCol < maxCols) {
+                guesses[currentRow][currentCol] = key;
+                updateTile(currentRow, currentCol, key);
+                currentCol++;
+                message.textContent = "";
+            }
+        }
+
+        function submitGuess() {
+            const guess = guesses[currentRow].join("");
+
+            if (guess.length !== 5) {
+                message.textContent = "Guess must be 5 letters.";
+                return;
+            }
+
+            const targetLetters = targetWord.split("");
+            const guessLetters = guess.split("");
+            const result = Array(5).fill("absent");
+
+            for (let i = 0; i < 5; i++) {
+                if (guessLetters[i] === targetLetters[i]) {
+                    result[i] = "correct";
+                    targetLetters[i] = null;
+                    guessLetters[i] = null;
+                }
+            }
+
+            for (let i = 0; i < 5; i++) {
+                if (guessLetters[i] && targetLetters.includes(guessLetters[i])) {
+                    result[i] = "present";
+                    targetLetters[targetLetters.indexOf(guessLetters[i])] = null;
+                }
+            }
+
+            for (let i = 0; i < 5; i++) {
+                const tile = document.getElementById(`tile-${currentRow}-${i}`);
+                tile.classList.add(result[i]);
+
+                const keyId = guesses[currentRow][i] === "⌫" ? "⌫" : guesses[currentRow][i];
+                const keyBtn = document.getElementById(`key-${keyId}`);
+
+                if (keyBtn) {
+                    if (result[i] === "correct") {
+                        keyBtn.style.backgroundColor = "#3cb371";
+                    } else if (result[i] === "present" && keyBtn.style.backgroundColor !== "rgb(60, 179, 113)") {
+                        keyBtn.style.backgroundColor = "#d4a72c";
+                    } else if (!keyBtn.style.backgroundColor) {
+                        keyBtn.style.backgroundColor = "#5c6b7a";
+                    }
+                }
+            }
+
+            if (guess === targetWord) {
+                message.textContent = `You got it! The word was ${targetWord}.`;
+                gameOver = true;
+                return;
+            }
+
+            currentRow++;
+            currentCol = 0;
+
+            if (currentRow === maxRows) {
+                message.textContent = `Game over. The word was ${targetWord}.`;
+                gameOver = true;
+            }
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (gameOver) return;
+
+            if (e.key === "Backspace") {
+                handleKey("⌫");
+            } else if (e.key === "Enter") {
+                handleKey("ENTER");
+            } else {
+                const key = e.key.toUpperCase();
+                if (/^[A-Z]$/.test(key)) {
+                    handleKey(key);
+                }
+            }
+        });
+
+        createBoard();
+        createKeyboard();
+    </script>
+</body>
+</html>
